@@ -6,6 +6,11 @@ using Parameters
 include("quaternions.jl")
 using .Quaternions
 
+# Dimensions
+const nx = 13
+const nz = 12
+const nu = 4
+
 # System's properties
 
 struct System
@@ -137,7 +142,7 @@ returns:
 ẋ - rate of change of the state (ẋ = [v, q̇, v̇, ω̇])
 
 """
-function forward_dynamics(system, x, u)
+function dynamics(system, x, u)
     @assert length(x) == 13
     @assert length(u) == 4
 
@@ -162,7 +167,7 @@ returns:
 dż - rate of change of the state in tangential direction (dż = [v, ω, v̇, ω̇])
 
 """
-function tangential_forward_dynamics(system, x₀, dz, u)
+function tangential_dynamics(system, x₀, dz, u)
     @assert length(x₀) == 13
     @assert length(dz) == 12
     @assert length(u) == 4
