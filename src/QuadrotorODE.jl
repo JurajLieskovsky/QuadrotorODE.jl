@@ -128,6 +128,16 @@ function state_difference(x, x₀)
     return vcat(dr, dθ, dv, dω)
 end
 
+# State normalization utility
+
+"""
+Normalizes the quaternion, that represents the quadrotors orientation, within the state vector.
+"""
+function normalize_state!(x)
+    q = view(x, 4:7)
+    q ./= norm(q)
+end
+
 # State space descriptions
 
 """
