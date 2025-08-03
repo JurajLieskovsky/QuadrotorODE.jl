@@ -35,8 +35,18 @@ Converts angular velocity to a quaternion rate of change.
 q̇ = δq/δθ ω
 
 """
-function q̇(ω)
-    return 0.5 * vcat(0, ω)
+q̇(ω) = vcat(0, 0.5 * ω)
+
+
+"""
+Transforms a 3D vector according to a unit quaternion.
+
+"""
+function rot(q, v)
+    q₀, q⃗ = q[1], q[2:4]
+    return v + 2 * q⃗ × (q⃗ × v + q₀ * v)
+end
+
 end
 
 
@@ -52,16 +62,4 @@ function dθ(dq)
     θ = 2 * atan(magnitude / dq₀)
     u = dq⃗ / magnitude
     return θ * u
-end
-
-
-"""
-Transforms a 3D vector according to a unit quaternion.
-
-"""
-function rot(q, v)
-    q₀, q⃗ = q[1], q[2:4]
-    return v + 2 * q⃗ × (q⃗ × v + q₀ * v)
-end
-
 end
