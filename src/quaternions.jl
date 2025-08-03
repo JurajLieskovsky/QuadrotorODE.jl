@@ -14,8 +14,8 @@ Multiplies quaternions p and q.
 
 """
 function multiply(p, q)
-    p₀, p⃗ = p[1], p[2:4]
-    q₀, q⃗ = q[1], q[2:4]
+    p₀, p⃗ = p[1], view(p, 2:4)
+    q₀, q⃗ = q[1], view(q, 2:4)
     return vcat(p₀ * q₀ - p⃗'q⃗, p₀ * q⃗ + q₀ * p⃗ + p⃗ × q⃗)
 end
 
@@ -43,7 +43,7 @@ Transforms a 3D vector according to a unit quaternion.
 
 """
 function rot(q, v)
-    q₀, q⃗ = q[1], q[2:4]
+    q₀, q⃗ = q[1], view(q, 2:4)
     return v + 2 * q⃗ × (q⃗ × v + q₀ * v)
 end
 
@@ -53,7 +53,7 @@ Approximates a quaternion as a rotation about an arbitrary axis.
 
 """
 function dθ(dq)
-    dq₀, dq⃗ = dq[1], dq[2:4]
+    dq₀, dq⃗ = dq[1], view(dq, 2:4)
 
     magnitude = sqrt(dq⃗'dq⃗ + eps(Float64))
 
