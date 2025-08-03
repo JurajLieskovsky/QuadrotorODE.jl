@@ -47,8 +47,6 @@ function rot(q, v)
     return v + 2 * q⃗ × (q⃗ × v + q₀ * v)
 end
 
-end
-
 
 """
 Approximates a quaternion as a rotation about an arbitrary axis.
@@ -62,4 +60,6 @@ function dθ(dq)
     θ = 2 * atan(magnitude / dq₀)
     u = dq⃗ / magnitude
     return θ * u
+end
+
 end
