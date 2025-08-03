@@ -5,25 +5,12 @@ using LinearAlgebra
 """
 Calculates the complex conjugate of a quaternion
 
-arguments:
-    q - quaternion
-
-returns:
-    q* - complex conjugate of q
-
 """
 conjugate(q) = [q[1], -q[2], -q[3], -q[4]]
 
 
 """
-Multiplies two quaternion p and q.
-
-arguments:
-    p - quaternion
-    q - quaternion
-
-returns:
-    pq - product of quaternion mulitiplication
+Multiplies quaternions p and q.
 
 """
 function multiply(p, q)
@@ -52,14 +39,9 @@ function q̇(ω)
     return 0.5 * vcat(0, ω)
 end
 
+
 """
 Approximates a quaternion as a rotation about an arbitrary axis.
-
-arguments:
-    dq - quaternion
-
-returns:
-    dθ - angle * axis of rotation
 
 """
 function dθ(dq)
@@ -75,13 +57,6 @@ end
 
 """
 Transforms a 3D vector according to a unit quaternion.
-
-arguments:
-    q - unit quaternion
-    v - 3D vector
-
-returns:
-    v′ - transformed 3D vector
 
 """
 function rot(q, v)
