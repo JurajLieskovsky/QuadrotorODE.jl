@@ -51,6 +51,14 @@ end
 
 
 """
+Infinitesimal rotation around an arbirary axis as a quaternion
+
+δq = q(δθ), δθ → 0
+"""
+δq(δθ) = vcat(1, 0.5 * δθ)
+
+
+"""
 Approximates a quaternion as a rotation about an arbitrary axis.
 
 arguments:

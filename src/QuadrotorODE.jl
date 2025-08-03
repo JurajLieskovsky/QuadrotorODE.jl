@@ -91,14 +91,14 @@ returns:
 x₀ + dx(dz) - incremented state (dx = [dr, q̇(q,dθ), dv, dω])
 
 """
-function incremented_state(x₀, dz)
+function δx(x₀, δz)
     @assert length(x₀) == 13
-    @assert length(dz) == 12
+    @assert length(δz) == 12
 
     r, q, v, ω = x₀[1:3], x₀[4:7], x₀[8:10], x₀[11:13]
-    dr, dθ, dv, dω = dz[1:3], dz[4:6], dz[7:9], dz[10:12]
+    δr, δθ, δv, δω = δz[1:3], δz[4:6], δz[7:9], δz[10:12]
 
-    return vcat(r + dr, q + Quaternions.q̇(q, dθ), v + dv, ω + dω)
+    return vcat(r + δr, Quaternions.multiply(Quaternions.δq(δθ), q), v + δv, ω + δω)
 end
 
 # State difference utility
@@ -182,7 +182,7 @@ function tangential_dynamics(system, x₀, dz, u)
     @assert length(dz) == 12
     @assert length(u) == 4
 
-    x = incremented_state(x₀, dz)
+    x = δx(x₀, dz)
     _, q, v, ω = x[1:3], x[4:7], x[8:10], x[11:13]
 
     ω̇ = angular_acceleration(system, ω, u)
