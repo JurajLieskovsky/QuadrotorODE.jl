@@ -34,29 +34,23 @@ end
 
 
 """
-Converts angular velocity to a quaternion's rate of change.
-
-arguments:
-    q - quaternion
-    ω - angular velocity (in the coordinates of q)
-
-returns:
-    q̇ - quaternion's rate of change
-
-"""
-function q̇(q, ω)
-    q₀, q⃗ = q[1], q[2:4]
-    return 0.5 * vcat(-q⃗'ω, q₀ * ω + q⃗ × ω)
-end
-
-
-"""
 Infinitesimal rotation around an arbirary axis as a quaternion
 
 δq = q(δθ), δθ → 0
+
 """
 δq(δθ) = vcat(1, 0.5 * δθ)
 
+
+"""
+Converts angular velocity to a quaternion rate of change.
+
+q̇ = δq/δθ ω
+
+"""
+function q̇(ω)
+    return 0.5 * vcat(0, ω)
+end
 
 """
 Approximates a quaternion as a rotation about an arbitrary axis.

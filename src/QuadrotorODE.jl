@@ -160,7 +160,7 @@ function dynamics(system, x, u)
     ω̇ = angular_acceleration(system, ω, u)
     v̇ = linear_acceleration(system, q, u)
 
-    return vcat(v, Quaternions.q̇(q, ω), v̇, ω̇)
+    return vcat(v, Quaternions.multiply(q, Quaternions.q̇(ω)), v̇, ω̇)
 end
 
 
