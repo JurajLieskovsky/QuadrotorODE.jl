@@ -98,7 +98,7 @@ function δx(x₀, δz)
     r, q, v, ω = x₀[1:3], x₀[4:7], x₀[8:10], x₀[11:13]
     δr, δθ, δv, δω = δz[1:3], δz[4:6], δz[7:9], δz[10:12]
 
-    return vcat(r + δr, Quaternions.multiply(Quaternions.δq(δθ), q), v + δv, ω + δω)
+    return vcat(r + δr, Quaternions.multiply(q, Quaternions.δq(δθ)), v + δv, ω + δω)
 end
 
 # State difference utility
@@ -121,7 +121,7 @@ function state_difference(x, x₀)
     @assert length(x₀) == 13
 
     dr = x[1:3] - x₀[1:3]
-    dθ = Quaternions.dθ(Quaternions.multiply(x[4:7], Quaternions.conjugate(x₀[4:7])))
+    dθ = Quaternions.dθ(Quaternions.multiply(Quaternions.conjugate(x₀[4:7]), x[4:7]))
     dv = x[8:10] - x₀[8:10]
     dω = x[11:13] - x₀[11:13]
 
