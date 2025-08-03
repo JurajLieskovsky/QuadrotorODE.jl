@@ -2,17 +2,11 @@ module Quaternions
 
 using LinearAlgebra
 
-"""
-Calculates the complex conjugate of a quaternion
-
-"""
+"""Calculates the complex conjugate of a quaternion."""
 conjugate(q) = [q[1], -q[2], -q[3], -q[4]]
 
 
-"""
-Multiplies quaternions p and q.
-
-"""
+"""Multiplies quaternions p and q."""
 function multiply(p, q)
     p₀, p⃗ = p[1], view(p, 2:4)
     q₀, q⃗ = q[1], view(q, 2:4)
@@ -38,20 +32,14 @@ q̇ = δq/δθ ω
 q̇(ω) = vcat(0, 0.5 * ω)
 
 
-"""
-Transforms a 3D vector according to a unit quaternion.
-
-"""
+"""Transforms a 3D vector according to a unit quaternion."""
 function rot(q, v)
     q₀, q⃗ = q[1], view(q, 2:4)
     return v + 2 * q⃗ × (q⃗ × v + q₀ * v)
 end
 
 
-"""
-Approximates a quaternion as a rotation about an arbitrary axis.
-
-"""
+"""Approximates a quaternion as a rotation about an arbitrary axis."""
 function dθ(dq)
     dq₀, dq⃗ = dq[1], view(dq, 2:4)
 
