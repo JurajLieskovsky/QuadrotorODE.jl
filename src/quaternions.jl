@@ -59,7 +59,7 @@ function rot(q, v)
         2 * (q⃗[3] * v[1] - q⃗[1] * v[3])
         2 * (q⃗[1] * v[2] - q⃗[2] * v[1])
     ]
-    
+
     return @SVector [
         v[1] + q₀ * t[1] + (q⃗[2] * t[3] - q⃗[3] * t[2])
         v[2] + q₀ * t[2] + (q⃗[3] * t[1] - q⃗[1] * t[3])
@@ -72,11 +72,15 @@ end
 function dθ(dq)
     dq₀, dq⃗ = dq[1], view(dq, 2:4)
 
-    magnitude = sqrt(dq⃗'dq⃗ + eps(Float64))
+    dq⃗2 = mapreduce(e -> e^2, +, dq⃗) # dq⃗⋅dq⃗
+    nrm = sqrt(dq⃗2 + eps(Float64))   # ||dq⃗||₂
+    scl = 2 * atan(nrm, dq₀) / nrm   # θ/||dq⃗||₂
 
-    θ = 2 * atan(magnitude, dq₀)
-    u = dq⃗ / magnitude
-    return θ * u
+    return @SVector [
+        scl * dq⃗[1],
+        scl * dq⃗[2],
+        scl * dq⃗[3]
+    ]
 end
 
 end
