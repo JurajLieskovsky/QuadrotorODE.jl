@@ -95,6 +95,10 @@ function q2θ(q, ε=eps())
 
     q⃗2 = mapreduce(e -> e^2, +, q⃗)  # q⃗⋅q⃗
     nrm = sqrt(q⃗2 + ε)              # ||q⃗||₂
+
+    # return identity (can occur only when ε=0)
+    nrm == 0 && return @SVector [0, 0, 0]
+
     scl = 2 * atan(nrm, q₀) / nrm   # θ/||q⃗||₂
 
     return @SVector [
@@ -110,13 +114,16 @@ Converts a quaternion to a rotation about an axis.
 """
 function θ2q(θ, ε=eps())
     θ2 = mapreduce(e -> e^2, +, θ)
-    ang = sqrt(θ2 + ε)
+    norm = sqrt(θ2 + ε)
+
+    # return identity (can occur only when ε=0)
+    norm == 0 && return @SVector [1, 0, 0, 0]
 
     return @SVector [
-        cos(ang / 2),
-        θ[1] / ang * sin(ang / 2),
-        θ[2] / ang * sin(ang / 2),
-        θ[3] / ang * sin(ang / 2)
+        cos(norm / 2),
+        θ[1] / norm * sin(norm / 2),
+        θ[2] / norm * sin(norm / 2),
+        θ[3] / norm * sin(norm / 2)
     ]
 end
 
