@@ -115,16 +115,18 @@ Converts a quaternion to a rotation about an axis.
 """
 function θ2q(θ, ε=eps())
     θ2 = mapreduce(e -> e^2, +, θ)
-    norm = sqrt(θ2 + ε)
+    nrm = sqrt(θ2 + ε)
 
     # return identity (can occur only when ε=0)
-    norm == 0 && return @SVector [1, 0, 0, 0]
+    nrm == 0 && return @SVector [1, 0, 0, 0]
+
+    scl = 1 / nrm * sin(nrm / 2)
 
     return @SVector [
-        cos(norm / 2),
-        θ[1] / norm * sin(norm / 2),
-        θ[2] / norm * sin(norm / 2),
-        θ[3] / norm * sin(norm / 2)
+        cos(nrm / 2),
+        scl * θ[1],
+        scl * θ[2],
+        scl * θ[3]
     ]
 end
 
