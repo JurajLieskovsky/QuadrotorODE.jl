@@ -1,6 +1,7 @@
 module Quaternions
 
 using LinearAlgebra
+using StaticArrays
 
 """Calculates the complex conjugate of a quaternion."""
 conjugate(q) = [q[1], -q[2], -q[3], -q[4]]
@@ -32,10 +33,26 @@ q̇ = δq/δθ ω
 q̇(ω) = vcat(0, 0.5 * ω)
 
 
-"""Transforms a 3D vector according to a unit quaternion."""
+"""
+Transforms a 3D vector according to a unit quaternion.
+
+v' = v + 2 * q⃗ × (q⃗ × v + q₀ * v)
+
+"""
 function rot(q, v)
     q₀, q⃗ = q[1], view(q, 2:4)
-    return v + 2 * q⃗ × (q⃗ × v + q₀ * v)
+
+    t = @SVector [
+        2 * (q⃗[2] * v[3] - q⃗[3] * v[2])
+        2 * (q⃗[3] * v[1] - q⃗[1] * v[3])
+        2 * (q⃗[1] * v[2] - q⃗[2] * v[1])
+    ]
+    
+    return @SVector [
+        v[1] + q₀ * t[1] + (q⃗[2] * t[3] - q⃗[3] * t[2])
+        v[2] + q₀ * t[2] + (q⃗[3] * t[1] - q⃗[1] * t[3])
+        v[3] + q₀ * t[3] + (q⃗[1] * t[2] - q⃗[2] * t[1])
+    ]
 end
 
 
