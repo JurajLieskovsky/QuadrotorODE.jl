@@ -45,7 +45,7 @@ function dθ(dq)
 
     magnitude = sqrt(dq⃗'dq⃗ + eps(Float64))
 
-    θ = 2 * atan(magnitude / dq₀)
+    θ = 2 * atan(magnitude, dq₀)
     u = dq⃗ / magnitude
     return θ * u
 end
