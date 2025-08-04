@@ -68,18 +68,37 @@ q̇ = δq/δθ ω
 q̇(ω) = @SVector [0, 0.5 * ω[1], 0.5 * ω[2], 0.5 * ω[3]]
 
 
-"""Approximates a quaternion as a rotation about an arbitrary axis."""
-function dθ(dq)
-    dq₀, dq⃗ = dq[1], view(dq, 2:4)
+"""
+Converts a quaternion to a rotation about an axis.
 
-    dq⃗2 = mapreduce(e -> e^2, +, dq⃗) # dq⃗⋅dq⃗
-    nrm = sqrt(dq⃗2 + eps(Float64))   # ||dq⃗||₂
-    scl = 2 * atan(nrm, dq₀) / nrm   # θ/||dq⃗||₂
+"""
+function q2θ(q, ε=eps())
+    q₀, q⃗ = q[1], view(q, 2:4)
+
+    q⃗2 = mapreduce(e -> e^2, +, q⃗)  # q⃗⋅q⃗
+    nrm = sqrt(q⃗2 + ε)              # ||q⃗||₂
+    scl = 2 * atan(nrm, q₀) / nrm   # θ/||q⃗||₂
 
     return @SVector [
-        scl * dq⃗[1],
-        scl * dq⃗[2],
-        scl * dq⃗[3]
+        scl * q⃗[1],
+        scl * q⃗[2],
+        scl * q⃗[3]
+    ]
+end
+
+"""
+Converts a quaternion to a rotation about an axis.
+
+"""
+function θ2q(θ, ε=eps())
+    θ2 = mapreduce(e -> e^2, +, θ)
+    ang = sqrt(θ2 + ε)
+
+    return @SVector [
+        cos(ang / 2),
+        θ[1] / ang * sin(ang / 2),
+        θ[2] / ang * sin(ang / 2),
+        θ[3] / ang * sin(ang / 2)
     ]
 end
 

@@ -121,7 +121,7 @@ function state_difference(x, x₀)
     @assert length(x₀) == 13
 
     dr = x[1:3] - x₀[1:3]
-    dθ = Quaternions.dθ(Quaternions.multiply(Quaternions.conjugate(x₀[4:7]), x[4:7]))
+    dθ = Quaternions.q2θ(Quaternions.multiply(Quaternions.conjugate(x₀[4:7]), x[4:7]))
     dv = x[8:10] - x₀[8:10]
     dω = x[11:13] - x₀[11:13]
 
