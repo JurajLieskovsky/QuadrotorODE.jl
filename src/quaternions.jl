@@ -4,7 +4,7 @@ using LinearAlgebra
 using StaticArrays
 
 """Calculates the complex conjugate of a quaternion."""
-conjugate(q) = [q[1], -q[2], -q[3], -q[4]]
+conjugate(q) = @SVector [q[1], -q[2], -q[3], -q[4]]
 
 
 """Multiplies quaternions p and q."""
@@ -21,7 +21,7 @@ Infinitesimal rotation around an arbirary axis as a quaternion
 δq = q(δθ), δθ → 0
 
 """
-δq(δθ) = vcat(1, 0.5 * δθ)
+δq(δθ) = @SVector [1, 0.5 * δθ[1], 0.5 * δθ[2], 0.5 * δθ[3]]
 
 
 """
@@ -30,7 +30,7 @@ Converts angular velocity to a quaternion rate of change.
 q̇ = δq/δθ ω
 
 """
-q̇(ω) = vcat(0, 0.5 * ω)
+q̇(ω) = @SVector [0, 0.5 * ω[1], 0.5 * ω[2], 0.5 * ω[3]]
 
 
 """
