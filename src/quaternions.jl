@@ -51,6 +51,24 @@ end
 
 
 """
+Calculates the jacobian G(q) where
+
+q̇ = q 1/2*(0+ω⃗) = G(q) * ω⃗
+
+"""
+function G(q)
+    q₀, p⃗ = q[1], view(q, 2:4)
+
+    return 0.5 * @SMatrix [
+        -p⃗[1] -p⃗[2] -p⃗[3]
+        q₀ -p⃗[3] p⃗[2]
+        p⃗[3] q₀ -p⃗[1]
+        -p⃗[2] p⃗[1] q₀
+    ]
+end
+
+
+"""
 Infinitesimal rotation around an arbirary axis as a quaternion
 
 δq = q(δθ), δθ → 0
