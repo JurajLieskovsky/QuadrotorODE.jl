@@ -7,11 +7,23 @@ using StaticArrays
 conjugate(q) = @SVector [q[1], -q[2], -q[3], -q[4]]
 
 
-"""Multiplies quaternions p and q."""
+"""
+Multiplies quaternions p and q.
+
+s₀ = p₀ * q₀ - p⃗'q⃗
+s⃗  = p₀ * q⃗ + q₀ * p⃗ + p⃗ × q⃗
+
+"""
 function multiply(p, q)
     p₀, p⃗ = p[1], view(p, 2:4)
     q₀, q⃗ = q[1], view(q, 2:4)
-    return vcat(p₀ * q₀ - p⃗'q⃗, p₀ * q⃗ + q₀ * p⃗ + p⃗ × q⃗)
+
+    return @SVector [
+        p₀ * q₀ - p⃗[1] * q⃗[1] - p⃗[2] * q⃗[2] - p⃗[3] * q⃗[3],
+        p₀ * q⃗[1] + p⃗[1] * q₀ + p⃗[2] * q⃗[3] - p⃗[3] * q⃗[2],
+        p₀ * q⃗[2] - p⃗[1] * q⃗[3] + p⃗[2] * q₀ + p⃗[3] * q⃗[1],
+        p₀ * q⃗[3] + p⃗[1] * q⃗[2] - p⃗[2] * q⃗[1] + p⃗[3] * q₀
+    ]
 end
 
 
