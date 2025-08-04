@@ -103,9 +103,7 @@ function q2θ(q, ε=eps())
     scl = 2 * atan(nrm, q₀) / nrm   # θ/||q⃗||₂
 
     return @SVector [
-        scl * q⃗[1],
-        scl * q⃗[2],
-        scl * q⃗[3]
+        scl * q⃗[1], scl * q⃗[2], scl * q⃗[3]
     ]
 end
 
@@ -123,10 +121,7 @@ function θ2q(θ, ε=eps())
     scl = 1 / nrm * sin(nrm / 2)
 
     return @SVector [
-        cos(nrm / 2),
-        scl * θ[1],
-        scl * θ[2],
-        scl * θ[3]
+        cos(nrm / 2), scl * θ[1], scl * θ[2], scl * θ[3]
     ]
 end
 
