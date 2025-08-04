@@ -62,16 +62,17 @@ Infinitesimal rotation around an arbirary axis as a quaternion
 """
 Converts angular velocity to a quaternion rate of change.
 
-q̇ = δq/δθ ω
+q̇ = ∂q/∂θ(0) ω⃗
 
 """
 q̇(ω) = @SVector [0, 0.5 * ω[1], 0.5 * ω[2], 0.5 * ω[3]]
 
 
 """
-Calculates the jacobian G(q) where
+Calculates the jacobian G(p) which maps an angular velocity ω
+in the local frame to a quaternion rate of change ṗ
 
-q̇ = q 1/2*(0+ω⃗) = G(q) * ω⃗
+ṗ = p q̇ = p ∂q/∂θ(0) ω = G(p) * ω
 
 """
 function G(q)
