@@ -2,6 +2,7 @@ module QuadrotorODE
 
 using LinearAlgebra
 using Parameters
+using BlockDiagonals
 
 include("quaternions.jl")
 using .Quaternions
@@ -163,6 +164,9 @@ function dynamics(system, x, u)
     return vcat(v, Quaternions.multiply(q, Quaternions.q̇(ω)), v̇, ω̇)
 end
 
+motion_jacobian(x) = BlockDiagonal(
+    [Matrix{Float64}(I, 3, 3), Quaternions.G(x[4:7]), Matrix{Float64}(I, 6, 6)]
+)
 
 """
 Calculates the rate of change of the state in the tangential direction.
