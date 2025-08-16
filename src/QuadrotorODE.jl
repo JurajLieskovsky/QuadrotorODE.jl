@@ -79,31 +79,7 @@ function linear_acceleration(system::System, q, u)
     return g + Quaternions.rot(q, F) / m
 end
 
-# State incrementation utility
-
-"""
-Calculates the system's state as incremented by dz.
-
-arguments:
-x₀ - system's state (x₀ = [r, q, v, ω])
-dz - incrementation of the state (dz = [dr, dθ, dv, dω]) 
-
-returns:
-x₀ + dx(dz) - incremented state (dx = [dr, q̇(q,dθ), dv, dω])
-
-"""
-function δx(x₀, δz)
-    @assert length(x₀) == 13
-    @assert length(δz) == 12
-
-    r, q, v, ω = x₀[1:3], x₀[4:7], x₀[8:10], x₀[11:13]
-    δr, δθ, δv, δω = δz[1:3], δz[4:6], δz[7:9], δz[10:12]
-
-    return vcat(r + δr, Quaternions.multiply(q, Quaternions.δq(δθ)), v + δv, ω + δω)
-end
-
 # State difference utility
-
 """
 Calculates the difference between the current and reference state in the tangential direction of the reference state.
 
@@ -122,7 +98,7 @@ function state_difference(x, x₀)
     @assert length(x₀) == 13
 
     dr = x[1:3] - x₀[1:3]
-    dθ = Quaternions.q2θ(Quaternions.multiply(Quaternions.conjugate(x₀[4:7]), x[4:7]))
+    dθ = Quaternions.q2rp(Quaternions.multiply(Quaternions.conjugate(x₀[4:7]), x[4:7]))
     dv = x[8:10] - x₀[8:10]
     dω = x[11:13] - x₀[11:13]
 
@@ -167,32 +143,5 @@ end
 motion_jacobian(x) = BlockDiagonal(
     [Matrix{Float64}(I, 3, 3), Quaternions.G(x[4:7]), Matrix{Float64}(I, 6, 6)]
 )
-
-"""
-Calculates the rate of change of the state in the tangential direction.
-
-arguments:
-system - properties of the quadrotor
-x₀ - system's state (x₀ = [r, q, v, ω])
-dz - increment of the state (dz = [dr, dθ, dv, dω]) 
-u  - control inputs
-
-returns:
-dż - rate of change of the state in tangential direction (dż = [v, ω, v̇, ω̇])
-
-"""
-function tangential_dynamics(system, x₀, dz, u)
-    @assert length(x₀) == 13
-    @assert length(dz) == 12
-    @assert length(u) == 4
-
-    x = δx(x₀, dz)
-    _, q, v, ω = x[1:3], x[4:7], x[8:10], x[11:13]
-
-    ω̇ = angular_acceleration(system, ω, u)
-    v̇ = linear_acceleration(system, q, u)
-
-    return vcat(v, ω, v̇, ω̇)
-end
 
 end

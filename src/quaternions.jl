@@ -125,4 +125,20 @@ function θ2q(θ, ε=eps())
     ]
 end
 
+"""
+Converts a quaternion to a Rodrigues parameter.
+
+"""
+function rp2q(ϕ)
+    (1 / sqrt(1 + ϕ' * ϕ)) * [1; ϕ]
+end
+
+"""
+Converts a Rodrigues parameter to a quaternion.
+
+"""
+function q2rp(q)
+    q[2:4] / q[1]
+end
+
 end
