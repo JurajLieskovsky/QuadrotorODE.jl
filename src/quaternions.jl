@@ -78,7 +78,7 @@ ṗ = p q̇ = p ∂q/∂θ(0) ω = G(p) * ω
 function G(q)
     q₀, p⃗ = q[1], view(q, 2:4)
 
-    return 0.5 * @SMatrix [
+    return @SMatrix [
         -p⃗[1] -p⃗[2] -p⃗[3]
         q₀ -p⃗[3] p⃗[2]
         p⃗[3] q₀ -p⃗[1]
