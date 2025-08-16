@@ -44,44 +44,35 @@ end
 # Dynamics (accelerations)
 
 """
-Calculates the quadrotor's angular acceleration.
-
-arguments:
-    system - properties of the quadrotor
-    ω - angular velocity (in the frame of the quadrotor)
-    u - control inputs
-
-returns:
-    ω̇ - angular accelaration
-
-"""
-function angular_acceleration(system::System, ω, u)
-    @unpack J, W = system
-    return J \ (W * u - ω × (J * ω))
-end
-
-
-"""
-Calculates the quadrotor's linear acceleration.
+Calculates the quadrotor's body-frame accelerations.
 
 arguments:
     system - properties of the quadrotor
     q - orientation of the quadrotor (quaternion)
+    v - linear velocity (in the frame of the quadrotor)
+    ω - angular velocity (in the frame of the quadrotor)
     u - control inputs
 
 returns:
+    v̇ - linear acceleration
     ω̇ - angular accelaration
 
 """
-function linear_acceleration(system::System, q, v, ω, u)
-    @unpack g, m = system
+function body_frame_acceleration(system::System, q, v, ω, u)
+    @unpack g, m, J, W = system
+
     F = [0, 0, sum(u)]
-    return Quaternions.rot(Quaternions.conjugate(q), g) + F / m - ω × v
+    v̇ = Quaternions.rot(Quaternions.conjugate(q), g) + F / m - ω × v
+    ω̇ = J \ (W * u - ω × (J * ω))
+
+    return v̇, ω̇
 end
 
 # State difference utility
+
 """
-Calculates the difference between the current and reference state in the tangential direction of the reference state.
+Calculates the difference between the current and reference state. The relative rotation is expressed
+using Rodrigues parameters.
 
 arguments:
     x  - current state
@@ -89,9 +80,7 @@ arguments:
 
 returns:
     dz - state difference (dz = [dr, dθ, dv, dω]) 
-    
-The approximation x ≈ x₀ + dx(dz), where dx = [dr, q̇(q,dθ), dv, dω], should be accurate for very small values of dθ
-    
+  
 """
 function state_difference(x, x₀)
     @assert length(x) == 13
@@ -119,10 +108,13 @@ end
 
 """
 Calculates the rate of change of the state according to the state description ẋ = f(x,u).
+The state of the system x = [r, q, v, ω] uses a combination of position r and orientation q
+expressed in the global frame and the linear translational velocity v and angular velocity ω
+expressed in the local frame of the quadrotor's body.
 
 arguments:
 system - properties of the quadrotor
-x - system's state (x = [r, q, v, ω])
+x - system's state (, where v and ω are expressed in the frame of the quadrotor)
 u - control inputs
 
 returns:
@@ -134,8 +126,7 @@ function dynamics(system, x, u)
     @assert length(u) == 4
 
     _, q, v, ω = x[1:3], x[4:7], x[8:10], x[11:13]
-    ω̇ = angular_acceleration(system, ω, u)
-    v̇ = linear_acceleration(system, q, v, ω, u)
+    v̇, ω̇ = body_frame_acceleration(system, q, v, ω, u)
 
     return vcat(Quaternions.rot(q, v), Quaternions.multiply(q, Quaternions.q̇(ω)), v̇, ω̇)
 end
