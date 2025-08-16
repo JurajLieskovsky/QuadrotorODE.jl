@@ -68,6 +68,33 @@ function body_frame_acceleration(system::System, q, v, ω, u)
     return v̇, ω̇
 end
 
+# State space descriptions
+
+"""
+Calculates the rate of change of the state according to the state description ẋ = f(x,u).
+The state of the system x = [r, q, v, ω] uses a combination of position r and orientation q
+expressed in the global frame and the linear translational velocity v and angular velocity ω
+expressed in the local frame of the quadrotor's body.
+
+arguments:
+system - properties of the quadrotor
+x - system's state (, where v and ω are expressed in the frame of the quadrotor)
+u - control inputs
+
+returns:
+ẋ - rate of change of the state (ẋ = [v, q̇, v̇, ω̇])
+
+"""
+function dynamics(system, x, u)
+    @assert length(x) == 13
+    @assert length(u) == 4
+
+    _, q, v, ω = x[1:3], x[4:7], x[8:10], x[11:13]
+    v̇, ω̇ = body_frame_acceleration(system, q, v, ω, u)
+
+    return vcat(Quaternions.rot(q, v), Quaternions.multiply(q, Quaternions.q̇(ω)), v̇, ω̇)
+end
+
 # State difference utility
 
 """
@@ -102,33 +129,6 @@ Normalizes the quaternion, that represents the quadrotors orientation, within th
 function normalize_state!(x)
     q = view(x, 4:7)
     q ./= norm(q)
-end
-
-# State space descriptions
-
-"""
-Calculates the rate of change of the state according to the state description ẋ = f(x,u).
-The state of the system x = [r, q, v, ω] uses a combination of position r and orientation q
-expressed in the global frame and the linear translational velocity v and angular velocity ω
-expressed in the local frame of the quadrotor's body.
-
-arguments:
-system - properties of the quadrotor
-x - system's state (, where v and ω are expressed in the frame of the quadrotor)
-u - control inputs
-
-returns:
-ẋ - rate of change of the state (ẋ = [v, q̇, v̇, ω̇])
-
-"""
-function dynamics(system, x, u)
-    @assert length(x) == 13
-    @assert length(u) == 4
-
-    _, q, v, ω = x[1:3], x[4:7], x[8:10], x[11:13]
-    v̇, ω̇ = body_frame_acceleration(system, q, v, ω, u)
-
-    return vcat(Quaternions.rot(q, v), Quaternions.multiply(q, Quaternions.q̇(ω)), v̇, ω̇)
 end
 
 motion_jacobian(x) = BlockDiagonal(
