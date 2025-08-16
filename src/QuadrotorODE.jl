@@ -95,6 +95,16 @@ function dynamics(system, x, u)
     return vcat(Quaternions.rot(q, v), Quaternions.multiply(q, Quaternions.q̇(ω)), v̇, ω̇)
 end
 
+# Jacobian
+
+"""
+Calculates G(x) where ∂x/∂z = G(x) and ∂x/∂z = G(x)ᵀ.
+
+"""
+jacobian(x) = BlockDiagonal(
+    [Matrix{Float64}(I, 3, 3), Quaternions.G(x[4:7]), Matrix{Float64}(I, 6, 6)]
+)
+
 # State difference utility
 
 """
@@ -130,9 +140,5 @@ function normalize_state!(x)
     q = view(x, 4:7)
     q ./= norm(q)
 end
-
-motion_jacobian(x) = BlockDiagonal(
-    [Matrix{Float64}(I, 3, 3), Quaternions.G(x[4:7]), Matrix{Float64}(I, 6, 6)]
-)
 
 end
