@@ -49,16 +49,6 @@ function rot(q, v)
     ]
 end
 
-
-"""
-Infinitesimal rotation around an arbirary axis as a quaternion
-
-δq = q(δθ), δθ → 0
-
-"""
-δq(δθ) = @SVector [1, 0.5 * δθ[1], 0.5 * δθ[2], 0.5 * δθ[3]]
-
-
 """
 Converts angular velocity to a quaternion rate of change.
 
