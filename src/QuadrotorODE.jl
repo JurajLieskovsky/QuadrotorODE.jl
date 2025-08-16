@@ -77,12 +77,12 @@ expressed in the global frame and the linear translational velocity v and angula
 expressed in the local frame of the quadrotor's body.
 
 arguments:
-system - properties of the quadrotor
-x - system's state (, where v and ω are expressed in the frame of the quadrotor)
-u - control inputs
+    system - properties of the quadrotor
+    x - system's state (, where v and ω are expressed in the frame of the quadrotor)
+    u - control inputs
 
 returns:
-ẋ - rate of change of the state (ẋ = [v, q̇, v̇, ω̇])
+    ẋ - rate of change of the state (ẋ = [v, q̇, v̇, ω̇])
 
 """
 function dynamics(system, x, u)
