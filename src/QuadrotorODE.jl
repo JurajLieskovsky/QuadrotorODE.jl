@@ -73,10 +73,10 @@ returns:
     ω̇ - angular accelaration
 
 """
-function linear_acceleration(system::System, q, u)
+function linear_acceleration(system::System, q, v, ω, u)
     @unpack g, m = system
     F = [0, 0, sum(u)]
-    return g + Quaternions.rot(q, F) / m
+    return Quaternions.rot(Quaternions.conjugate(q), g) + F / m - ω × v
 end
 
 # State difference utility
@@ -135,9 +135,9 @@ function dynamics(system, x, u)
 
     _, q, v, ω = x[1:3], x[4:7], x[8:10], x[11:13]
     ω̇ = angular_acceleration(system, ω, u)
-    v̇ = linear_acceleration(system, q, u)
+    v̇ = linear_acceleration(system, q, v, ω, u)
 
-    return vcat(v, Quaternions.multiply(q, Quaternions.q̇(ω)), v̇, ω̇)
+    return vcat(Quaternions.rot(q, v), Quaternions.multiply(q, Quaternions.q̇(ω)), v̇, ω̇)
 end
 
 motion_jacobian(x) = BlockDiagonal(
