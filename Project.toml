@@ -11,4 +11,5 @@ StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 
 [compat]
 BlockDiagonals = "0.2.0"
+Parameters = "0.12.3"
 StaticArrays = "1.9.14"
