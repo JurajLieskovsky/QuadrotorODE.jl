@@ -3,6 +3,7 @@ module QuadrotorODE
 using LinearAlgebra
 using Parameters
 using BlockDiagonals
+using StaticArrays
 
 include("quaternions.jl")
 using .Quaternions
@@ -18,27 +19,9 @@ struct System
     g::Vector # gravitation acceleration
     m::Real   # mass
     J::Matrix # moment of inertia
-    W::Matrix # moment matrix
-
-    function System(gravitation_accelaration, mass, moment_of_inertia, arm_length, torque_coefficient)
-        rotor_radius_vectors = [
-            [1, -1, 0],
-            [1, 1, 0],
-            [-1, 1, 0],
-            [-1, -1, 0]
-        ]
-
-        z_axis = [0, 0, 1]
-        direction_of_rotation = [1, -1, 1, -1]
-
-        moment_matrix = mapreduce(
-            arg -> arg[1] × z_axis * arm_length - arg[2] * z_axis * torque_coefficient,
-            hcat,
-            zip(rotor_radius_vectors, direction_of_rotation)
-        )
-
-        return new(gravitation_accelaration, mass, moment_of_inertia, moment_matrix)
-    end
+    a::Real   # moment arm of propellers
+    kₜ::Real  # propeller thrust coefficient
+    kₘ::Real  # propeller torque coefficient
 end
 
 # Dynamics (accelerations)
@@ -59,9 +42,15 @@ returns:
 
 """
 function body_frame_acceleration(system::System, q, v, ω, u)
-    @unpack g, m, J, W = system
+    @unpack g, m, J, a, kₘ, kₜ = system
 
-    F = [0, 0, sum(u)]
+    F = @SVector [0, 0, sum(u)]
+    W = @SMatrix [
+        -a*kₜ +a*kₜ +a*kₜ -a*kₜ
+        -a*kₜ -a*kₜ +a*kₜ +a*kₜ
+        +kₘ -kₘ +kₘ -kₘ
+    ]
+
     v̇ = Quaternions.rot(Quaternions.conjugate(q), g) + F / m - ω × v
     ω̇ = J \ (W * u - ω × (J * ω))
 
