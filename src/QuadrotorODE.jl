@@ -16,7 +16,7 @@ const nu = 4
 # System's properties
 
 struct System
-    g::Vector # gravitation acceleration
+    g::Real # gravitation acceleration
     m::Real   # mass
     J::Matrix # moment of inertia
     a::Real   # moment arm of propellers
@@ -44,6 +44,7 @@ returns:
 function body_frame_acceleration(system::System, q, v, ω, u)
     @unpack g, m, J, a, kₘ, kₜ = system
 
+    G = @SVector [0, 0, -g]
     F = @SVector [0, 0, sum(u)]
     W = @SMatrix [
         -a*kₜ +a*kₜ +a*kₜ -a*kₜ
@@ -51,7 +52,7 @@ function body_frame_acceleration(system::System, q, v, ω, u)
         +kₘ -kₘ +kₘ -kₘ
     ]
 
-    v̇ = Quaternions.rot(Quaternions.conjugate(q), g) + F / m - ω × v
+    v̇ = Quaternions.rot(Quaternions.conjugate(q), G) + F / m - ω × v
     ω̇ = J \ (W * u - ω × (J * ω))
 
     return v̇, ω̇
@@ -87,7 +88,7 @@ end
 # Jacobian
 
 """
-Calculates G(x) where ∂x/∂z = G(x) and ∂x/∂z = G(x)ᵀ.
+Calculates E(x) where ∂x/∂z = E(x) and ∂x/∂z = E(x)ᵀ.
 
 """
 jacobian(x) = BlockDiagonal(
