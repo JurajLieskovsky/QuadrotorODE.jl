@@ -46,8 +46,8 @@ function body_frame_acceleration(system::System, q, v, ω, u)
 
     F = @SVector [0, 0, sum(u)]
     W = @SMatrix [
-        -a*kₜ +a*kₜ +a*kₜ -a*kₜ
-        -a*kₜ -a*kₜ +a*kₜ +a*kₜ
+        0 +a*kₜ 0 -a*kₜ
+        -a*kₜ 0 +a*kₜ 0
         +kₘ -kₘ +kₘ -kₘ
     ]
 
@@ -81,7 +81,7 @@ function dynamics(system, x, u)
     _, q, v, ω = x[1:3], x[4:7], x[8:10], x[11:13]
     v̇, ω̇ = body_frame_acceleration(system, q, v, ω, u)
 
-    return vcat(Quaternions.rot(q, v), Quaternions.multiply(q, Quaternions.q̇(ω)), v̇, ω̇)
+    return Vector(vcat(Quaternions.rot(q, v), Quaternions.multiply(q, Quaternions.q̇(ω)), v̇, ω̇))
 end
 
 # Jacobian
