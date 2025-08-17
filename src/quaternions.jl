@@ -49,6 +49,7 @@ function rot(q, v)
     ]
 end
 
+
 """
 Converts angular velocity to a quaternion rate of change.
 
@@ -77,10 +78,19 @@ function G(q)
 end
 
 
-"""
-Converts a quaternion to a rotation about an axis.
+"""Converts a quaternion to a Rodrigues parameters."""
+function rp2q(ϕ)
+    (1 / sqrt(1 + ϕ' * ϕ)) * [1; ϕ]
+end
 
-"""
+
+"""Converts a Rodrigues parameters to a quaternion."""
+function q2rp(q)
+    q[2:4] / q[1]
+end
+
+
+"""Converts a quaternion to a rotation about an axis."""
 function q2θ(q)
     q₀, q⃗ = q[1], view(q, 2:4)
 
@@ -98,10 +108,8 @@ function q2θ(q)
     end
 end
 
-"""
-Converts a quaternion to a rotation about an axis.
 
-"""
+"""Converts a quaternion to a rotation about an axis."""
 function θ2q(θ)
     θ2 = mapreduce(e -> e^2, +, θ)
     nrm = sqrt(θ2)
@@ -115,22 +123,6 @@ function θ2q(θ)
             cos(nrm / 2), scl * θ[1], scl * θ[2], scl * θ[3]
         ]
     end
-end
-
-"""
-Converts a quaternion to a Rodrigues parameter.
-
-"""
-function rp2q(ϕ)
-    (1 / sqrt(1 + ϕ' * ϕ)) * [1; ϕ]
-end
-
-"""
-Converts a Rodrigues parameter to a quaternion.
-
-"""
-function q2rp(q)
-    q[2:4] / q[1]
 end
 
 end
