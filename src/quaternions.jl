@@ -81,38 +81,40 @@ end
 Converts a quaternion to a rotation about an axis.
 
 """
-function q2θ(q, ε=eps())
+function q2θ(q)
     q₀, q⃗ = q[1], view(q, 2:4)
 
     q⃗2 = mapreduce(e -> e^2, +, q⃗)  # q⃗⋅q⃗
-    nrm = sqrt(q⃗2 + ε)              # ||q⃗||₂
+    nrm = sqrt(q⃗2)              # ||q⃗||₂
 
-    # return identity (can occur only when ε=0)
-    nrm == 0 && return @SVector [0, 0, 0]
+    if nrm == 0
+        return @SVector [0, 0, 0]
+    else
+        scl = 2 * atan(nrm, q₀) / nrm   # θ/||q⃗||₂
 
-    scl = 2 * atan(nrm, q₀) / nrm   # θ/||q⃗||₂
-
-    return @SVector [
-        scl * q⃗[1], scl * q⃗[2], scl * q⃗[3]
-    ]
+        return @SVector [
+            scl * q⃗[1], scl * q⃗[2], scl * q⃗[3]
+        ]
+    end
 end
 
 """
 Converts a quaternion to a rotation about an axis.
 
 """
-function θ2q(θ, ε=eps())
+function θ2q(θ)
     θ2 = mapreduce(e -> e^2, +, θ)
-    nrm = sqrt(θ2 + ε)
+    nrm = sqrt(θ2)
 
-    # return identity (can occur only when ε=0)
-    nrm == 0 && return @SVector [1, 0, 0, 0]
+    if nrm == 0
+        return @SVector [1, 0, 0, 0]
+    else
+        scl = 1 / nrm * sin(nrm / 2)
 
-    scl = 1 / nrm * sin(nrm / 2)
-
-    return @SVector [
-        cos(nrm / 2), scl * θ[1], scl * θ[2], scl * θ[3]
-    ]
+        return @SVector [
+            cos(nrm / 2), scl * θ[1], scl * θ[2], scl * θ[3]
+        ]
+    end
 end
 
 """
