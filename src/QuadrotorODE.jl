@@ -46,8 +46,8 @@ function body_frame_acceleration(system::System, q, v, ω, u)
 
     F = @SVector [0, 0, sum(u)]
     W = @SMatrix [
-        0 +a*kₜ 0 -a*kₜ
-        -a*kₜ 0 +a*kₜ 0
+        -a*kₜ +a*kₜ +a*kₜ -a*kₜ
+        -a*kₜ -a*kₜ +a*kₜ +a*kₜ
         +kₘ -kₘ +kₘ -kₘ
     ]
 
