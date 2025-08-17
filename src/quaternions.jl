@@ -56,7 +56,7 @@ Converts angular velocity to a quaternion rate of change.
 q̇ = ∂q/∂θ(0) ω⃗
 
 """
-q̇(ω) = @SVector [0, 0.5 * ω[1], 0.5 * ω[2], 0.5 * ω[3]]
+dqdt(ω) = @SVector [0, 0.5 * ω[1], 0.5 * ω[2], 0.5 * ω[3]]
 
 
 """

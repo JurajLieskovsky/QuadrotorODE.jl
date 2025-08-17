@@ -6,7 +6,7 @@ using BlockDiagonals
 using StaticArrays
 
 include("quaternions.jl")
-using .Quaternions
+using .Quaternions: conjugate, multiply, rot, dqdt, G, q2rp
 
 # Dimensions
 const nx = 13
@@ -52,7 +52,7 @@ function body_frame_acceleration(system::System, q, v, ω, u)
         +kₘ -kₘ +kₘ -kₘ
     ]
 
-    v̇ = Quaternions.rot(Quaternions.conjugate(q), G) + F / m - ω × v
+    v̇ = rot(conjugate(q), G) + F / m - ω × v
     ω̇ = J \ (W * u - ω × (J * ω))
 
     return v̇, ω̇
@@ -80,9 +80,12 @@ function dynamics(system, x, u)
     @assert length(u) == 4
 
     _, q, v, ω = x[1:3], x[4:7], x[8:10], x[11:13]
+
+    ṙ = rot(q, v)
+    q̇ = multiply(q, dqdt(ω))
     v̇, ω̇ = body_frame_acceleration(system, q, v, ω, u)
 
-    return Vector(vcat(Quaternions.rot(q, v), Quaternions.multiply(q, Quaternions.q̇(ω)), v̇, ω̇))
+    return Vector(vcat(ṙ, q̇, v̇, ω̇))
 end
 
 # Jacobian
@@ -92,7 +95,7 @@ Calculates E(x) where ∂x/∂z = E(x) and ∂x/∂z = E(x)ᵀ.
 
 """
 jacobian(x) = BlockDiagonal(
-    [Matrix{Float64}(I, 3, 3), Quaternions.G(x[4:7]), Matrix{Float64}(I, 6, 6)]
+    [Matrix{Float64}(I, 3, 3), G(x[4:7]), Matrix{Float64}(I, 6, 6)]
 )
 
 # State difference utility
@@ -114,7 +117,7 @@ function state_difference(x, x₀)
     @assert length(x₀) == 13
 
     dr = x[1:3] - x₀[1:3]
-    dθ = Quaternions.q2rp(Quaternions.multiply(Quaternions.conjugate(x₀[4:7]), x[4:7]))
+    dθ = q2rp(multiply(conjugate(x₀[4:7]), x[4:7]))
     dv = x[8:10] - x₀[8:10]
     dω = x[11:13] - x₀[11:13]
 
