@@ -4,12 +4,10 @@ authors = ["Juraj Lieskovský <lieskovsky.juraj@gmail.com>"]
 version = "0.1.0"
 
 [deps]
-BlockDiagonals = "0a1fb500-61f7-11e9-3c65-f5ef3456f9f0"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 Parameters = "d96e819e-fc66-5662-9728-84c9c7592b0a"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 
 [compat]
-BlockDiagonals = "0.2.0"
 Parameters = "0.12.3"
 StaticArrays = "1.9.14"
