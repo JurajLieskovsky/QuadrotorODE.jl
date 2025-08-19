@@ -94,7 +94,7 @@ Calculates E(x) where ∂x/∂z = E(x) and ∂x/∂z = E(x)ᵀ.
 
 """
 function jacobian(x)
-    E = zeros(13, 12)
+    E = zeros(eltype(x), 13, 12)
     E[1:3, 1:3] .= Matrix{Float64}(I, 3, 3)
     E[4:7, 4:6] .= G(x[4:7])
     E[8:13, 7:12] .= Matrix{Float64}(I, 6, 6)
