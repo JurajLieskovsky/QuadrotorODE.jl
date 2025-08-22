@@ -5,7 +5,7 @@ using Parameters
 using StaticArrays
 
 include("quaternions.jl")
-using .Quaternions: conjugate, multiply, rot, dqdt, G, q2rp, q2qv
+using .Quaternions: conjugate, multiply, rot, dqdt, G, q2rp, rp2q, q2qv, qv2q
 
 # Dimensions
 const nx = 13
@@ -132,6 +132,37 @@ function state_difference(x, x₀, rep=:rp)
     dω = x[11:13] - x₀[11:13]
 
     return vcat(dr, dθ, dv, dω)
+end
+
+"""
+Composes state x from x₀ and dz.
+
+arguments:
+    x₀ - reference state
+    dz - state difference (dz = [dr, dθ, dv, dω]) 
+
+returns:
+    x  - new state
+  
+"""
+function state_composition(x₀, dz, rep=:rp)
+    @assert length(x₀) == 13
+    @assert length(dz) == 12
+
+    dθ = dz[4:6]
+
+    dq = if rep == :rp
+        rp2q(dθ)
+    elseif rep == :qv
+        qv2q(dθ)
+    end
+
+    r = x₀[1:3] + dz[1:3]
+    q = multiply(x₀[4:7], dq)
+    v = x₀[8:10] + dz[7:9]
+    ω = x₀[11:13] + dz[10:12]
+
+    return vcat(r, q, v, ω)
 end
 
 # State normalization utility
