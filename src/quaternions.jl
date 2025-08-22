@@ -78,13 +78,13 @@ function G(q)
 end
 
 
-"""Converts a quaternion to a Rodrigues parameters."""
+"""Converts a Rodrigues parameters to a quaternion."""
 function rp2q(ϕ)
     (1 / sqrt(1 + ϕ' * ϕ)) * [1; ϕ]
 end
 
 
-"""Converts a Rodrigues parameters to a quaternion."""
+"""Converts a quaternion to a Rodrigues parameters."""
 function q2rp(q)
     q[2:4] / q[1]
 end
