@@ -89,6 +89,17 @@ function q2rp(q)
     q[2:4] / q[1]
 end
 
+"""Converts a quaternion vector part to a quaternion."""
+function qv2q(ϕ)
+    vcat(sqrt(1 - ϕ' * ϕ), ϕ)
+end
+
+
+"""Converts a quaternion to a quaternion vector part."""
+function q2qv(q)
+    q[2:4]
+end
+
 
 """Converts a quaternion to a rotation about an axis."""
 function q2θ(q)

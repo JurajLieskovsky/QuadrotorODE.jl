@@ -5,7 +5,7 @@ using Parameters
 using StaticArrays
 
 include("quaternions.jl")
-using .Quaternions: conjugate, multiply, rot, dqdt, G, q2rp
+using .Quaternions: conjugate, multiply, rot, dqdt, G, q2rp, q2qv
 
 # Dimensions
 const nx = 13
@@ -115,12 +115,19 @@ returns:
     dz - state difference (dz = [dr, dθ, dv, dω]) 
   
 """
-function state_difference(x, x₀)
+function state_difference(x, x₀, rep=:rp)
     @assert length(x) == 13
     @assert length(x₀) == 13
 
+    dq = multiply(conjugate(x₀[4:7]), x[4:7])
+
+    dθ = if rep == :rp
+        q2rp(dq)
+    elseif rep == :qv
+        q2qv(dq)
+    end
+
     dr = x[1:3] - x₀[1:3]
-    dθ = q2rp(multiply(conjugate(x₀[4:7]), x[4:7]))
     dv = x[8:10] - x₀[8:10]
     dω = x[11:13] - x₀[11:13]
 
