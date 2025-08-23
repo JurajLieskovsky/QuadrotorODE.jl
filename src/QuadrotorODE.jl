@@ -125,6 +125,8 @@ function state_difference(x, x₀, rep=:rp)
         q2rp(dq)
     elseif rep == :qv
         q2qv(dq)
+    elseif rep == :q
+        dq
     end
 
     dr = x[1:3] - x₀[1:3]
