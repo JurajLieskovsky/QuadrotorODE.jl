@@ -104,27 +104,31 @@ end
 # State difference utility
 
 """
-Calculates the difference between the current and reference state. The relative rotation is expressed
-using Rodrigues parameters.
+Calculates the difference between the current and reference state. The relative rotation can be expressed
+using:
+    - the vector part of a quaternion - :qv
+    - Rodrigues parameters            - :rp
+    - quaternion                      - :q
 
 arguments:
-    x  - current state
-    x₀ - reference state
+    x   - current state
+    x₀  - reference state
+    rep - relative rotation representation (default = :qv)
 
 returns:
     dz - state difference (dz = [dr, dθ, dv, dω]) 
   
 """
-function state_difference(x, x₀, rep=:rp)
+function state_difference(x, x₀, rep=:qv)
     @assert length(x) == 13
     @assert length(x₀) == 13
 
     dq = multiply(conjugate(x₀[4:7]), x[4:7])
 
-    dθ = if rep == :rp
-        q2rp(dq)
-    elseif rep == :qv
+    dθ = if rep == :qv
         q2qv(dq)
+    elseif rep == :rp
+        q2rp(dq)
     elseif rep == :q
         dq
     end
