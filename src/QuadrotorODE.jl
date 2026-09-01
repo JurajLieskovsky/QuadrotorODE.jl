@@ -9,8 +9,9 @@ using .Quaternions: conjugate, multiply, rot, dqdt, G, q2rp, rp2q, q2qv, qv2q
 
 # Dimensions
 const nx = 13
-const nz = 12
+const nd = 12
 const nu = 4
+const nw = 3
 
 # System's properties
 
@@ -40,7 +41,7 @@ returns:
     ω̇ - angular accelaration
 
 """
-function body_frame_acceleration(system::System, q, v, ω, u)
+function body_frame_acceleration(system::System, q, v, ω, u, w)
     @unpack g, m, J, a, kₘ, kₜ = system
 
     G = @SVector [0, 0, -g]
@@ -51,7 +52,7 @@ function body_frame_acceleration(system::System, q, v, ω, u)
         +kₘ -kₘ +kₘ -kₘ
     ]
 
-    v̇ = rot(conjugate(q), G) + F / m - ω × v
+    v̇ = rot(conjugate(q), G) + (F + w) / m - ω × v
     ω̇ = J \ (W * u - ω × (J * ω))
 
     return v̇, ω̇
@@ -74,7 +75,7 @@ returns:
     ẋ - rate of change of the state (ẋ = [v, q̇, v̇, ω̇])
 
 """
-function dynamics(system, x, u)
+function dynamics(system, x, u, w)
     @assert length(x) == 13
     @assert length(u) == 4
 
@@ -82,7 +83,7 @@ function dynamics(system, x, u)
 
     ṙ = rot(q, v)
     q̇ = multiply(q, dqdt(ω))
-    v̇, ω̇ = body_frame_acceleration(system, q, v, ω, u)
+    v̇, ω̇ = body_frame_acceleration(system, q, v, ω, u, w)
 
     return Vector(vcat(ṙ, q̇, v̇, ω̇))
 end
