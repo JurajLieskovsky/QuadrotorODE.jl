@@ -16,13 +16,20 @@ const nw = 3
 # System's properties
 
 struct System
-    g::Real # gravitation acceleration
+    g::Real   # gravitation acceleration
     m::Real   # mass
-    J::Matrix # moment of inertia
+    h::Vector # mass * CoM
+    J::Matrix # moment of inertial (w/ respect to frame origin)
     a::Real   # moment arm of propellers
     kₜ::Real  # propeller thrust coefficient
     kₘ::Real  # propeller torque coefficient
 end
+
+skew(a) = [
+    0 -a[3] a[2]
+    a[3] 0 -a[1]
+    -a[2] a[1] 0
+]
 
 # Dynamics (accelerations)
 
@@ -42,7 +49,7 @@ returns:
 
 """
 function body_frame_acceleration(system::System, q, v, ω, u, w)
-    @unpack g, m, J, a, kₘ, kₜ = system
+    @unpack g, m, h, J, a, kₘ, kₜ = system
 
     G = @SVector [0, 0, -g]
     F = @SVector [0, 0, sum(u)]
@@ -52,8 +59,18 @@ function body_frame_acceleration(system::System, q, v, ω, u, w)
         +kₘ -kₘ +kₘ -kₘ
     ]
 
-    v̇ = rot(conjugate(q), G) + (F + w) / m - ω × v
-    ω̇ = J \ (W * u - ω × (J * ω))
+    H = [
+        m*I(3) -skew(h)
+        skew(h) J
+    ]
+    τ = vcat(
+        -skew(ω) * (m * v + skew(ω) * h) + rot(conjugate(q), G) + F + w,
+        -skew(ω) * J * ω - h × (skew(ω) * v) + W * u
+    )
+    a = inv(H) * τ
+
+    v̇ = a[1:3]
+    ω̇ = a[4:6]
 
     return v̇, ω̇
 end
