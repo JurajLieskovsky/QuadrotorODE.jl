@@ -152,7 +152,7 @@ returns:
     x  - new state
   
 """
-function state_composition(x₀, dz, rep=:rp)
+function state_composition(x₀, dz, rep=:rp; normalize=true)
     @assert length(x₀) == 13
     @assert length(dz) == 12
 
@@ -169,7 +169,10 @@ function state_composition(x₀, dz, rep=:rp)
     v = x₀[8:10] + dz[7:9]
     ω = x₀[11:13] + dz[10:12]
 
-    return vcat(r, q, v, ω)
+    x = vcat(r, q, v, ω)
+    normalize && normalize_state!(x)
+
+    return x
 end
 
 # State normalization utility
