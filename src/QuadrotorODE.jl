@@ -16,7 +16,7 @@ const nw = 3
 # System's properties
 
 struct System
-    g::Real   # gravitation acceleration
+    g::Vector # gravitation acceleration
     m::Real   # mass
     h::Vector # first moment of mass
     Σ::Matrix # second moment of mass
@@ -42,7 +42,11 @@ function mass_matrix(system::System)
     ]
 end
 
-function body_frame_bias(system::System, v, ω)
+"""
+coriolis and centrifugal terms contributing to v̇, i.e the acceleration of the body
+relative to the moving reference frame.
+"""
+function reference_frame_bias(system::System, v, ω)
     @unpack m, h, Σ = system
 
     return vcat(
@@ -51,25 +55,11 @@ function body_frame_bias(system::System, v, ω)
     )
 end
 
-"""
-Calculates the quadrotor's body-frame accelerations.
+function external_torques(system::System, q, u, w)
+    @unpack g, m, h, a, kₘ, kₜ = system
 
-arguments:
-    system - properties of the quadrotor
-    q - orientation of the quadrotor (quaternion)
-    v - linear velocity (in the frame of the quadrotor)
-    ω - angular velocity (in the frame of the quadrotor)
-    u - control inputs
+    G = rot(conjugate(q), g)
 
-returns:
-    v̇ - linear acceleration
-    ω̇ - angular accelaration
-
-"""
-function body_frame_acceleration(system::System, q, v, ω, u, w)
-    @unpack g, m, h, Σ, a, kₘ, kₜ = system
-
-    G = @SVector [0, 0, -g]
     F = @SVector [0, 0, sum(u)]
     W = @SMatrix [
         -a*kₜ +a*kₜ +a*kₜ -a*kₜ
@@ -77,28 +67,21 @@ function body_frame_acceleration(system::System, q, v, ω, u, w)
         +kₘ -kₘ +kₘ -kₘ
     ]
 
-    H = mass_matrix(system)
-    c = body_frame_bias(system, v, ω)
     τ = vcat(
-        rot(conjugate(q), G) + F + w,
-        W * u
+        m * G + F + w,
+        skew(h) * G + W * u
     )
-
-    a = inv(H) * (-c + τ)
-
-    v̇ = a[1:3]
-    ω̇ = a[4:6]
-
-    return v̇, ω̇
 end
 
 # State space descriptions
 
 """
 Calculates the rate of change of the state according to the state description ẋ = f(x,u).
-The state of the system x = [r, q, v, ω] uses a combination of position r and orientation q
-expressed in the global frame and the linear translational velocity v and angular velocity ω
-expressed in the local frame of the quadrotor's body.
+The state of the system x = [r, q, v, ω] where
+    r - position relative to the origin of the world (inertial) frame expressed in world cooridnates
+    q - attitude to the inertial frame expressed in world cooridnates
+    v - linear translational velocity relative to the moving the body (reference) frame in body cooridinates
+    ω - angular velocity of the quadrotor's body in local coordinates.
 
 arguments:
     system - properties of the quadrotor
@@ -117,9 +100,14 @@ function dynamics(system, x, u, w=zeros(3))
 
     ṙ = rot(q, v)
     q̇ = multiply(q, dqdt(ω))
-    v̇, ω̇ = body_frame_acceleration(system, q, v, ω, u, w)
 
-    return Vector(vcat(ṙ, q̇, v̇, ω̇))
+    H = mass_matrix(system)
+    c = reference_frame_bias(system, v, ω)
+    τ = external_torques(system, q, u, w)
+
+    a = inv(H) * (-c + τ)
+
+    return Vector(vcat(ṙ, q̇, a[1:3], a[4:6]))
 end
 
 # Jacobian
