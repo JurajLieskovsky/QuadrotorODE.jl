@@ -42,10 +42,6 @@ function mass_matrix(system::System)
     ]
 end
 
-"""
-coriolis and centrifugal terms contributing to v̇, i.e the acceleration of the body
-relative to the moving reference frame.
-"""
 function reference_frame_bias(system::System, v, ω)
     @unpack m, h, Σ = system
 
