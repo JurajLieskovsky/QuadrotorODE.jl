@@ -25,7 +25,7 @@ struct System
     kₘ::Real  # propeller torque coefficient
 end
 
-skew(a) = [
+skew(a) = @SMatrix [
     0 -a[3] a[2]
     a[3] 0 -a[1]
     -a[2] a[1] 0
@@ -63,6 +63,7 @@ function body_frame_acceleration(system::System, q, v, ω, u, w)
         m*I(3) -skew(h)
         skew(h) tr(Σ)*I(3)-Σ
     ]
+
     τ = vcat(
         -skew(ω) * (m * v + skew(ω) * h) + rot(conjugate(q), G) + F + w,
         skew(ω) * Σ * ω - h × (skew(ω) * v) + W * u
