@@ -25,13 +25,31 @@ struct System
     kₘ::Real  # propeller torque coefficient
 end
 
+# Dynamics (accelerations)
+
 skew(a) = @SMatrix [
     0 -a[3] a[2]
     a[3] 0 -a[1]
     -a[2] a[1] 0
 ]
 
-# Dynamics (accelerations)
+function mass_matrix(system::System)
+    @unpack m, h, Σ = system
+
+    return [
+        m*I(3) -skew(h)
+        skew(h) tr(Σ)*I(3)-Σ
+    ]
+end
+
+function body_frame_bias(system::System, v, ω)
+    @unpack m, h, Σ = system
+
+    return vcat(
+        skew(ω) * (m * v + skew(ω) * h),
+        -skew(ω) * Σ * ω + h × (skew(ω) * v)
+    )
+end
 
 """
 Calculates the quadrotor's body-frame accelerations.
@@ -59,16 +77,14 @@ function body_frame_acceleration(system::System, q, v, ω, u, w)
         +kₘ -kₘ +kₘ -kₘ
     ]
 
-    H = [
-        m*I(3) -skew(h)
-        skew(h) tr(Σ)*I(3)-Σ
-    ]
-
+    H = mass_matrix(system)
+    c = body_frame_bias(system, v, ω)
     τ = vcat(
-        -skew(ω) * (m * v + skew(ω) * h) + rot(conjugate(q), G) + F + w,
-        skew(ω) * Σ * ω - h × (skew(ω) * v) + W * u
+        rot(conjugate(q), G) + F + w,
+        W * u
     )
-    a = inv(H) * τ
+
+    a = inv(H) * (-c + τ)
 
     v̇ = a[1:3]
     ω̇ = a[4:6]
