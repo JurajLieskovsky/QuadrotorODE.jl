@@ -50,8 +50,8 @@ function reference_frame_bias(system::System, v, ω)
     @unpack m, h, Σ = system
 
     return vcat(
-        skew(ω) * (m * v + skew(ω) * h),
-        -skew(ω) * Σ * ω + h × (skew(ω) * v)
+        skew(ω) * (skew(ω) * h),
+        -skew(ω) * Σ * ω
     )
 end
 
@@ -107,7 +107,7 @@ function dynamics(system, x, u, w=zeros(3))
 
     a = inv(H) * (-c + τ)
 
-    return Vector(vcat(ṙ, q̇, a[1:3], a[4:6]))
+    return Vector(vcat(ṙ, q̇, a[1:3] - skew(ω) * v, a[4:6]))
 end
 
 # Jacobian
