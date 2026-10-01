@@ -92,7 +92,7 @@ returns:
     ẋ - rate of change of the state (ẋ = [v, q̇, v̇, ω̇])
 
 """
-function dynamics(system, x, u, w)
+function dynamics(system, x, u, w=zeros(3))
     @assert length(x) == 13
     @assert length(u) == 4
 
