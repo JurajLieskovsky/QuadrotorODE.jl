@@ -42,7 +42,7 @@ function mass_matrix(system::System)
     ]
 end
 
-function reference_frame_bias(system::System, v, ω)
+function bias_torque(system::System, v, ω)
     @unpack m, h, Σ = system
 
     return vcat(
@@ -51,10 +51,16 @@ function reference_frame_bias(system::System, v, ω)
     )
 end
 
-function external_torques(system::System, q, u, w)
-    @unpack g, m, h, a, kₘ, kₜ = system
+function gravitational_torque(system::System, q)
+    @unpack g, m, h = system
 
     G = rot(conjugate(q), g)
+
+    return vcat(m * G, h × G)
+end
+
+function input_torque(system::System, u)
+    @unpack a, kₘ, kₜ = system
 
     F = @SVector [0, 0, sum(u)]
     W = @SMatrix [
@@ -63,13 +69,10 @@ function external_torques(system::System, q, u, w)
         +kₘ -kₘ +kₘ -kₘ
     ]
 
-    τ = vcat(
-        m * G + F + w,
-        skew(h) * G + W * u
-    )
+    return vcat(F, W * u)
 end
 
-# State space descriptions
+# State space description
 
 """
 Calculates the rate of change of the state according to the state description ẋ = f(x,u).
@@ -83,14 +86,16 @@ arguments:
     system - properties of the quadrotor
     x - system's state (, where v and ω are expressed in the frame of the quadrotor)
     u - control inputs
+    w - disturbance
 
 returns:
     ẋ - rate of change of the state (ẋ = [v, q̇, v̇, ω̇])
 
 """
-function dynamics(system, x, u, w=zeros(3))
+function dynamics(system, x, u, w=zeros(6))
     @assert length(x) == 13
     @assert length(u) == 4
+    @assert length(w) == 6
 
     _, q, v, ω = x[1:3], x[4:7], x[8:10], x[11:13]
 
@@ -98,10 +103,11 @@ function dynamics(system, x, u, w=zeros(3))
     q̇ = multiply(q, dqdt(ω))
 
     H = mass_matrix(system)
-    c = reference_frame_bias(system, v, ω)
-    τ = external_torques(system, q, u, w)
+    c = bias_torque(system, v, ω)
+    τ_g = gravitational_torque(system, q)
+    τ_u = input_torque(system, u)
 
-    a = inv(H) * (-c + τ)
+    a = inv(H) * (-c + τ_g + τ_u + w)
 
     return Vector(vcat(ṙ, q̇, a[1:3] - skew(ω) * v, a[4:6]))
 end
