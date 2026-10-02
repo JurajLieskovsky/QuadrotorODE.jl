@@ -107,9 +107,25 @@ function dynamics(system, x, u, w=zeros(6))
     τ_g = gravitational_torque(system, q)
     τ_u = input_torque(system, u)
 
-    a = inv(H) * (-c + τ_g + τ_u + w)
+    res = inv(H) * (-c + τ_g + τ_u + w)
 
-    return Vector(vcat(ṙ, q̇, a[1:3] - skew(ω) * v, a[4:6]))
+    return vcat(ṙ, q̇, res[1:3] - skew(ω) * v, res[4:6])
+end
+
+function imu_observation(system, x, u, w=zeros(6))
+    @assert length(x) == 13
+    @assert length(u) == 4
+    @assert length(w) == 6
+
+    _, q, v, ω = x[1:3], x[4:7], x[8:10], x[11:13]
+
+    H = mass_matrix(system)
+    c = bias_torque(system, v, ω)
+    τ_u = input_torque(system, u)
+
+    s = inv(H) * (-c + τ_u + w)
+
+    return vcat(s[1:3], ω)
 end
 
 # Jacobian
