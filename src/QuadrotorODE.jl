@@ -28,6 +28,8 @@ end
 function classic2moment(g, m, com, moi, a, kₜ, kₘ)
     return g, m, m * com, 0.5 * tr(moi) * I(3) - moi, a, kₜ, kₘ
 end
+
+pseudo_inertial_matrix(m, h, Σ) = [m h'; h Σ]
     
 # Dynamics (accelerations)
 
