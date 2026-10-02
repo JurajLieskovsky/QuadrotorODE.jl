@@ -25,6 +25,10 @@ struct System
     kₘ::Real  # propeller torque coefficient
 end
 
+function classic2moment(g, m, com, moi, a, kₜ, kₘ)
+    return g, m, m * com, 0.5 * tr(moi) * I(3) - moi, a, kₜ, kₘ
+end
+    
 # Dynamics (accelerations)
 
 skew(a) = @SMatrix [
@@ -42,7 +46,7 @@ function mass_matrix(system::System)
     ]
 end
 
-function bias_torque(system::System, v, ω)
+function bias_torque(system::System, ω)
     @unpack m, h, Σ = system
 
     return vcat(
@@ -103,7 +107,7 @@ function dynamics(system, x, u, w=zeros(6))
     q̇ = multiply(q, dqdt(ω))
 
     H = mass_matrix(system)
-    c = bias_torque(system, v, ω)
+    c = bias_torque(system, ω)
     τ_g = gravitational_torque(system, q)
     τ_u = input_torque(system, u)
 
@@ -117,15 +121,15 @@ function imu_observation(system, x, u, w=zeros(6))
     @assert length(u) == 4
     @assert length(w) == 6
 
-    _, q, v, ω = x[1:3], x[4:7], x[8:10], x[11:13]
+    _, _, _, ω = x[1:3], x[4:7], x[8:10], x[11:13]
 
     H = mass_matrix(system)
-    c = bias_torque(system, v, ω)
+    c = bias_torque(system, ω)
     τ_u = input_torque(system, u)
 
     s = inv(H) * (-c + τ_u + w)
 
-    return vcat(s[1:3], ω)
+    return vcat(ω, s[1:3])
 end
 
 # Jacobian
