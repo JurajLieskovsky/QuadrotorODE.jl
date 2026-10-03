@@ -13,24 +13,25 @@ const nd = 12
 const nu = 4
 const nw = 3
 
+const I33 = LinearAlgebra.I(3)
+
 # System's properties
 
 struct System
     g::Vector # gravitation acceleration
     m::Real   # mass
-    h::Vector # first moment of mass
-    Σ::Matrix # second moment of mass
+    h::Vector # first mass moment 
+    I::Matrix # rotational inertia
     a::Real   # moment arm of propellers
     kₜ::Real  # propeller thrust coefficient
     kₘ::Real  # propeller torque coefficient
 end
 
-function classic2moment(g, m, com, moi, a, kₜ, kₘ)
-    return g, m, m * com, 0.5 * tr(moi) * I(3) - moi, a, kₜ, kₘ
+function pseudo_inertial_matrix(m, h, I)
+    Σ = 0.5 * tr(I) * I33 - I
+    return [m h'; h Σ]
 end
 
-pseudo_inertial_matrix(m, h, Σ) = [m h'; h Σ]
-    
 # Dynamics (accelerations)
 
 skew(a) = @SMatrix [
@@ -40,20 +41,20 @@ skew(a) = @SMatrix [
 ]
 
 function mass_matrix(system::System)
-    @unpack m, h, Σ = system
+    @unpack m, h, I = system
 
     return [
-        m*I(3) -skew(h)
-        skew(h) tr(Σ)*I(3)-Σ
+        m*I33 -skew(h)
+        skew(h) I
     ]
 end
 
 function bias_torque(system::System, ω)
-    @unpack m, h, Σ = system
+    @unpack h, I = system
 
     return vcat(
         skew(ω) * (skew(ω) * h),
-        -skew(ω) * Σ * ω
+        skew(ω) * I * ω
     )
 end
 
@@ -103,7 +104,7 @@ function dynamics(system, x, u, w=zeros(6))
     @assert length(u) == 4
     @assert length(w) == 6
 
-    _, q, v, ω = x[1:3], x[4:7], x[8:10], x[11:13]
+    q, v, ω = x[4:7], x[8:10], x[11:13]
 
     ṙ = rot(q, v)
     q̇ = multiply(q, dqdt(ω))
@@ -113,9 +114,12 @@ function dynamics(system, x, u, w=zeros(6))
     τ_g = gravitational_torque(system, q)
     τ_u = input_torque(system, u)
 
-    res = inv(H) * (-c + τ_g + τ_u + w)
+    acc = inv(H) * (-c + τ_g + τ_u + w)
 
-    return vcat(ṙ, q̇, res[1:3] - skew(ω) * v, res[4:6])
+    v̇ = acc[1:3] - skew(ω) * v
+    α = acc[4:6]
+
+    return vcat(ṙ, q̇, v̇, α)
 end
 
 function imu_observation(system, x, u, w=zeros(6))
@@ -123,15 +127,17 @@ function imu_observation(system, x, u, w=zeros(6))
     @assert length(u) == 4
     @assert length(w) == 6
 
-    _, _, _, ω = x[1:3], x[4:7], x[8:10], x[11:13]
+    ω = x[11:13]
 
     H = mass_matrix(system)
     c = bias_torque(system, ω)
     τ_u = input_torque(system, u)
 
-    s = inv(H) * (-c + τ_u + w)
+    res = inv(H) * (-c + τ_u + w)
 
-    return vcat(ω, s[1:3])
+    s = res[1:3]
+
+    return vcat(ω, s)
 end
 
 # Jacobian
