@@ -27,6 +27,9 @@ struct System
     kₘ::Real  # propeller torque coefficient
 end
 
+"""
+Calculates the pseudo-inertial matrix of the system from the mass m, first mass moment h, and rotational inertia I.
+"""
 function pseudo_inertial_matrix(m, h, I)
     Σ = 0.5 * tr(I) * I33 - I
     return [m h'; h Σ]
@@ -34,12 +37,19 @@ end
 
 # Dynamics (accelerations)
 
+"""
+Calculates the skew-symmetric matrix of vector a, such that skew(a) * b == a × b.
+"""
 skew(a) = @SMatrix [
     0 -a[3] a[2]
     a[3] 0 -a[1]
     -a[2] a[1] 0
 ]
 
+"""
+Calculates the system's mass matrix H, such that H * [v̇; α] equals the net force and torque acting on the
+quadrotor, expressed in body coordinates.
+"""
 function mass_matrix(system::System)
     @unpack m, h, I = system
 
@@ -49,6 +59,10 @@ function mass_matrix(system::System)
     ]
 end
 
+"""
+Calculates the bias force and torque (the gyroscopic and Coriolis terms stemming from the angular velocity ω),
+excluding the contributions of gravity and the control inputs.
+"""
 function bias_torque(system::System, ω)
     @unpack h, I = system
 
@@ -58,6 +72,10 @@ function bias_torque(system::System, ω)
     )
 end
 
+"""
+Calculates the force and torque due to gravity, expressed in body coordinates, given the quadrotor's
+attitude q.
+"""
 function gravitational_torque(system::System, q)
     @unpack g, m, h = system
 
@@ -66,6 +84,10 @@ function gravitational_torque(system::System, q)
     return vcat(m * G, h × G)
 end
 
+"""
+Calculates the force and torque produced by the propellers' thrusts in response to the control inputs u
+in body coodrinates.
+"""
 function input_torque(system::System, u)
     @unpack a, kₘ, kₜ = system
 
@@ -122,6 +144,20 @@ function dynamics(system, x, u, w=zeros(6))
     return vcat(ṙ, q̇, v̇, α)
 end
 
+"""
+Calculates the IMU observation y = [ω, s] that would be measured by a gyroscope and accelerometer located at the
+origin of the body frame, according to the observation description y = h(x,u).
+
+arguments:
+    system - properties of the quadrotor
+    x - system's state (, where v and ω are expressed in the frame of the quadrotor)
+    u - control inputs
+    w - disturbance
+
+returns:
+    y - IMU observation (y = [ω, s]), where s is the specific force sensed by the accelerometer
+
+"""
 function imu_observation(system, x, u, w=zeros(6))
     @assert length(x) == 13
     @assert length(u) == 4
