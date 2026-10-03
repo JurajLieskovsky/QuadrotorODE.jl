@@ -190,7 +190,7 @@ function jacobian(x)
     return E
 end
 
-# State difference utility
+# State utilities
 
 """
 Calculates the difference between the current and reference state. The relative rotation can be expressed
@@ -262,8 +262,6 @@ function state_composition(x₀, dz, rep=:rp; normalize=true)
 
     return x
 end
-
-# State normalization utility
 
 """
 Normalizes the quaternion, that represents the quadrotors orientation, within the state vector.
