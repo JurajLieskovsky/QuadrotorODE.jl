@@ -11,7 +11,7 @@ using .Quaternions: conjugate, multiply, rot, dqdt, G, q2rp, rp2q, q2qv, qv2q
 const nx = 13
 const nd = 12
 const nu = 4
-const nw = 3
+const nw = 6
 
 const I33 = LinearAlgebra.I(3)
 
