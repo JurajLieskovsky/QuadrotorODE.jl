@@ -85,17 +85,24 @@ function gravitational_torque(system::System, q)
 end
 
 """
-Calculates the force and torque produced by the propellers' thrusts in response to the control inputs u
-in body coodrinates.
+Calculates the force and torque produced by the propellers in response to the control inputs u in body
+coodrinates. Each propeller produces the thrust kₜ * uᵢ and the drag torque kₘ * uᵢ, i.e. uᵢ is the squared
+rotational speed of the i-th rotor (or its thrust with kₜ = 1 and kₘ being the torque-to-thrust ratio).
+
+The rotors are numbered and spin as on the Crazyflie (x forward, y left, z up):
+    1 - front-right (+x, -y), counter-clockwise
+    2 - back-right  (-x, -y), clockwise
+    3 - back-left   (-x, +y), counter-clockwise
+    4 - front-left  (+x, +y), clockwise
 """
 function input_torque(system::System, u)
     @unpack a, kₘ, kₜ = system
 
-    F = @SVector [0, 0, sum(u)]
+    F = @SVector [0, 0, kₜ * sum(u)]
     W = @SMatrix [
-        -a*kₜ +a*kₜ +a*kₜ -a*kₜ
         -a*kₜ -a*kₜ +a*kₜ +a*kₜ
-        +kₘ -kₘ +kₘ -kₘ
+        -a*kₜ +a*kₜ +a*kₜ -a*kₜ
+        -kₘ +kₘ -kₘ +kₘ
     ]
 
     return vcat(F, W * u)
